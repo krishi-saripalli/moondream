@@ -218,11 +218,11 @@ if __name__ == "__main__":
         # Print results
         print("\nBenchmark Results (10 runs):")
         print("Image Encoding Time (ms):")
-        print(f"  Mean: {sum(encode_times)/len(encode_times):.2f}")
+        print(f"  Mean: {sum(encode_times) / len(encode_times):.2f}")
         print(f"  Min:  {min(encode_times):.2f}")
         print(f"  Max:  {max(encode_times):.2f}")
         print("\nQuery Speed (tokens/sec):")
-        print(f"  Mean: {sum(query_speeds)/len(query_speeds):.2f}")
+        print(f"  Mean: {sum(query_speeds) / len(query_speeds):.2f}")
         print(f"  Min:  {min(query_speeds):.2f}")
         print(f"  Max:  {max(query_speeds):.2f}")
 

@@ -61,7 +61,6 @@ class EncodedImage:
 
 
 class KVCache(nn.Module):
-
     def __init__(self, n_heads, n_kv_heads, max_context, dim, device, dtype):
         super().__init__()
         cache_shape = (1, n_kv_heads, max_context, dim // n_heads)
@@ -91,7 +90,6 @@ def get_mask_mod(mask_mod, offset):
 
 
 class MoondreamModel(nn.Module):
-
     def __init__(
         self, config: MoondreamConfig, dtype=torch.bfloat16, setup_caches=True
     ):

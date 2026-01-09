@@ -12,9 +12,7 @@ def safetensors_open(safetensors_file: str):
     Simplify interfacing with safetensors files. Eliminates the need to ignore
     type errors when using the `safe_open` function.
     """
-    with safetensors.safe_open(
-        safetensors_file, framework="pt"
-    ) as st:  # pyright: ignore
+    with safetensors.safe_open(safetensors_file, framework="pt") as st:  # pyright: ignore
 
         def get_tensor(name: str) -> torch.Tensor:
             return st.get_tensor(name)

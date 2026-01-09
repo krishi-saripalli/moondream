@@ -139,9 +139,9 @@ def main():
     model = load_model(args.model, device)
     res = evaluate(model, args.iou_thr, args.debug)
 
-    print(f"Precision: {res['precision']*100:.2f}%")
-    print(f"Recall: {res['recall']*100:.2f}%")
-    print(f"F1 Score:  {res['f1']*100:.2f}%")
+    print(f"Precision: {res['precision'] * 100:.2f}%")
+    print(f"Recall: {res['recall'] * 100:.2f}%")
+    print(f"F1 Score:  {res['f1'] * 100:.2f}%")
     print(f"TP: {res['tp']}  FP: {res['fp']}  FN: {res['fn']}")
 
 

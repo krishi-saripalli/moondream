@@ -88,7 +88,7 @@ class HfMoondream(PreTrainedModel):
         chat_history="",
         result_queue=None,
         max_new_tokens=256,
-        **kwargs
+        **kwargs,
     ):
         answer = self.query(image_embeds, question)["answer"].strip()
 
@@ -166,7 +166,7 @@ class HfMoondream(PreTrainedModel):
         self,
         input_ids: Union[torch.LongTensor, list, tuple],
         *,
-        device: torch.device | None = None
+        device: torch.device | None = None,
     ) -> torch.FloatTensor:
         """
         Back-compat wrapper that turns token IDs into embeddings.

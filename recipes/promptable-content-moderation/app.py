@@ -322,14 +322,14 @@ def create_visualization_plots(json_path):
 
         # Enhanced summary text
         summary = f"""Summary Statistics:
-Total frames analyzed: {len(data['frame_detections'])}
+Total frames analyzed: {len(data["frame_detections"])}
 Total detections: {len(df)}
-Average detections per frame: {len(df) / len(data['frame_detections']):.2f}
+Average detections per frame: {len(df) / len(data["frame_detections"]):.2f}
 
 Detection Patterns:
-- Peak detection count: {df.groupby('frame').size().max()} (in a single frame)
-- Most common screen region: {df.groupby(['grid_y', 'grid_x']).size().idxmax()}
-- Average detection size: {df['area'].mean():.3f}
+- Peak detection count: {df.groupby("frame").size().max()} (in a single frame)
+- Most common screen region: {df.groupby(["grid_y", "grid_x"]).size().idxmax()}
+- Average detection size: {df["area"].mean():.3f}
 - Median frames between detections: {detection_gaps.median():.1f}
 
 Video metadata:

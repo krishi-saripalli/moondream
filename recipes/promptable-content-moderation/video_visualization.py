@@ -376,11 +376,11 @@ def create_video_visualization(json_path, style="timeline"):
 
                 # Return video path and stats
                 stats = f"""Video Stats:
-FPS: {metadata['fps']}
-Total Frames: {metadata['total_frames']}
-Duration: {metadata['duration_sec']:.2f} seconds
-Max Detections in a Frame: {frame_data['detections'].max()}
-Average Detections per Frame: {frame_data['detections'].mean():.2f}"""
+FPS: {metadata["fps"]}
+Total Frames: {metadata["total_frames"]}
+Duration: {metadata["duration_sec"]:.2f} seconds
+Max Detections in a Frame: {frame_data["detections"].max()}
+Average Detections per Frame: {frame_data["detections"].mean():.2f}"""
 
                 return output_video, stats
 

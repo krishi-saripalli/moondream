@@ -246,7 +246,6 @@ def eval_coco_map(model, iou_threshold=0.5, debug=False):
         unique_labels = [label for label in set(objects["label"])]
 
         for label in unique_labels:
-
             encoded_image = model.encode_image(row["image"])
             model_answer = model.detect(encoded_image, COCO_LABELS[label])["objects"]
 
@@ -280,7 +279,7 @@ def eval_coco_map(model, iou_threshold=0.5, debug=False):
 
         if debug and total % 100 == 0:
             print(
-                f"Total map: {get_total_map(results_by_label, frequency_by_label)*100:.2f}, ({total} images)"
+                f"Total map: {get_total_map(results_by_label, frequency_by_label) * 100:.2f}, ({total} images)"
             )
 
     return {
@@ -309,4 +308,4 @@ if __name__ == "__main__":
 
     result = eval_coco_map(model, 0.5, args.debug)
 
-    print(f"Overall MAP: {result['total_map']*100:.2f}")
+    print(f"Overall MAP: {result['total_map'] * 100:.2f}")
