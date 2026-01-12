@@ -6,6 +6,8 @@ import torch
 from PIL import Image, ImageDraw
 from tqdm import tqdm
 
+from .config import TextConfig
+
 from .weights import load_weights_into_model
 from .moondream import MoondreamModel, MoondreamConfig
 
@@ -36,6 +38,8 @@ if __name__ == "__main__":
     model = MoondreamModel(config)
     load_weights_into_model(args.model, model)
     model.to(device, dtype=torch.bfloat16)
+
+
     model.compile()
 
     torch.cuda.empty_cache()
@@ -88,7 +92,7 @@ if __name__ == "__main__":
             encoded_image,
             args.prompt,
             stream=True,
-            settings={"variant": "geoguesser_lora_only"},
+            settings={"temperature": 0.5, "max_tokens": 768, "top_p": 0.3},
         )["answer"]:
             print(t, end="", flush=True)
         print()

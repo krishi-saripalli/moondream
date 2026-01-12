@@ -1,9 +1,11 @@
+import json
+import os
 import safetensors
 import torch
 import torch.nn as nn
 
 from contextlib import contextmanager
-from typing import Callable, List
+from typing import Callable, Dict, List
 
 
 @contextmanager
@@ -145,6 +147,36 @@ def load_weights_from_safetensors(weights_file: str, model: nn.Module) -> None:
             )
 
 
+def load_weights_from_safetensors_sharded(index_file: str, model: nn.Module) -> None:
+    """Load a sharded HF safetensors checkpoint using model.safetensors.index.json."""
+    with open(index_file, "r") as f:
+        index = json.load(f)
+
+    base_dir = os.path.dirname(index_file)
+    weight_map = index["weight_map"]
+
+    # Group checkpoint keys by shard file
+    shard_to_keys: Dict[str, List[str]] = {}
+    for ckpt_key, shard in weight_map.items():
+        shard_to_keys.setdefault(shard, []).append(ckpt_key)
+
+    # Collect all tensors from all shards
+    tensors = {}
+    for shard, keys in shard_to_keys.items():
+        shard_path = os.path.join(base_dir, shard)
+        with safetensors_open(shard_path) as get_tensor:
+            for ckpt_key in keys:
+                # Strip "model." prefix to match local model keys
+                local_key = ckpt_key.replace("model.", "", 1)
+                tensors[local_key] = get_tensor(ckpt_key)
+
+    missing_keys, unexpected_keys = model.load_state_dict(tensors, strict=False)
+    if missing_keys:
+        print("Missing keys:", missing_keys)
+    if unexpected_keys:
+        print("Unexpected keys:", unexpected_keys)
+
+
 def load_weights_from_pt(weights_file: str, model: nn.Module) -> None:
     """Load weights from a PyTorch file into a MoondreamModel instance."""
     device = str(torch.empty(0).device)
@@ -166,10 +198,12 @@ def load_weights_into_model(weights_file: str, model: nn.Module) -> None:
     Load weights from either a safetensors or PyTorch file directly into a MoondreamModel instance.
 
     Args:
-        weights_file: Path to weights file (either .safetensors or .pt)
+        weights_file: Path to weights file (either .safetensors, .index.json, or .pt)
         model: MoondreamModel instance to load weights into
     """
-    if weights_file.endswith(".safetensors"):
+    if weights_file.endswith(".index.json"):
+        load_weights_from_safetensors_sharded(weights_file, model)
+    elif weights_file.endswith(".safetensors"):
         load_weights_from_safetensors(weights_file, model)
     else:
         load_weights_from_pt(weights_file, model)

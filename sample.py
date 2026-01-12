@@ -1,4 +1,3 @@
-# e.g uv run python sample.py --prompt "What are we looking at?" --image "../../dataset/2025-04-12_16-59-24/rgb/10_rgb.png"
 import argparse
 
 import torch
@@ -16,9 +15,9 @@ if __name__ == "__main__":
     image_path = args.image
     prompt = args.prompt
 
-    model_id = "vikhyatk/moondream2"
+    model_id = "moondream/moondream3-preview"
     moondream = AutoModelForCausalLM.from_pretrained(
-        "vikhyatk/moondream2",
+        model_id,
         trust_remote_code=True,
         dtype=torch.bfloat16,
         device_map="cuda",
