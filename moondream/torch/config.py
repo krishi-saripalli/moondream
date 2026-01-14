@@ -25,6 +25,18 @@ class TextConfig:
 
 
 @dataclass(frozen=True)
+class OlfactionConfig:
+    smell_dim: int = 32
+    enc_dim: int = 1152
+    enc_ff_dim: int = 1152
+    enc_n_heads: int = 2
+    enc_n_layers: int = 2
+    proj_inner_dim: int = 4096
+    out_dim: int = 2048
+    max_timestep: int = 18
+
+
+@dataclass(frozen=True)
 class VisionConfig:
     enc_dim: int = 1152
     enc_patch_size: int = 14

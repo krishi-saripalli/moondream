@@ -31,7 +31,5 @@ if __name__ == "__main__":
         print(moondream.caption(image, length="short", settings=settings))
     else:
         image_embeds = moondream.encode_image(image)
-        answer = moondream.query(
-            image, prompt, settings=settings, reasoning=True
-        )
+        answer = moondream.query(image, prompt, settings=settings, reasoning=True)
         print(answer)

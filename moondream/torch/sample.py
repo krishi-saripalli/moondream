@@ -39,7 +39,6 @@ if __name__ == "__main__":
     load_weights_into_model(args.model, model)
     model.to(device, dtype=torch.bfloat16)
 
-
     model.compile()
 
     torch.cuda.empty_cache()

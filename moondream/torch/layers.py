@@ -220,7 +220,12 @@ class AttentionWeights:
     proj: LinearWeights
 
 
-def attn(x: torch.Tensor, w: AttentionWeights, n_heads: int) -> torch.Tensor:
+def attn(
+    x: torch.Tensor,
+    w: AttentionWeights,
+    n_heads: int,
+    mask: Optional[torch.Tensor] = None,
+) -> torch.Tensor:
     bsz, q_len, d_model = x.shape
     head_dim = d_model // n_heads
 
@@ -228,7 +233,7 @@ def attn(x: torch.Tensor, w: AttentionWeights, n_heads: int) -> torch.Tensor:
         t.view(bsz, q_len, n_heads, head_dim).transpose(1, 2)
         for t in linear(x, w.qkv).chunk(3, dim=-1)
     ]
-    out = F.scaled_dot_product_attention(q, k, v)
+    out = F.scaled_dot_product_attention(q, k, v, attn_mask=mask)
     out = out.transpose(1, 2).reshape(bsz, q_len, d_model)
     out = linear(out, w.proj)
     return out
