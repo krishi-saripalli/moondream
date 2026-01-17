@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 
 @dataclass(frozen=True)
@@ -34,6 +34,10 @@ class OlfactionConfig:
     proj_inner_dim: int = 4096
     out_dim: int = 2048
     max_timestep: int = 18
+    img_original_dims: Tuple[int, int] = (1024, 1920)
+    img_scale_factor: float = 0.4
+    vision_patch_size: int = 14
+    vision_crop_size: int = 378
 
 
 @dataclass(frozen=True)

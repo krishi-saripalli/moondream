@@ -14,19 +14,35 @@ from .config import OlfactionConfig
 def padding_mask(smells: torch.Tensor):
     B, T, D = smells.shape
     mask = smells.abs().sum(dim=-1) > 0
-    assert smells.shape == (B, T)
+
+    assert mask.shape == (B, T)
     return mask
+
+
+def masked_mean_pool(smells: torch.Tensor, mask : torch.Tensor):
+    B, T, D = smells.shape
+    mask_ = mask.unsqueeze(-1).to(smells.dtype)
+    non_zero_count = mask_.sum(dim=1)
+    non_zero = (smells * mask_).sum(dim=1)
+    return non_zero / non_zero_count.clamp(min=1)
+
+
+def mean_pool(patches : torch.Tensor):
+    B, P, D = patches.shape
+    assert(P == 729)
+    return patches.mean(dim=1)
 
 
 def pad_to_max_timestep(smell: torch.Tensor, config: OlfactionConfig) -> torch.Tensor:
     T, D = smell.shape
-    total_padding = min(T - config.max_timestep, 0)
+    total_padding = max(config.max_timestep - T, 0)
     padded = F.pad(
         smell,
-        [0, 0, total_padding // 2, total_padding - (total_padding // 2)],
+        [0, 0, 0,total_padding],
         mode="constant",
         value=0.0,
     )
+
     assert padded.shape == (config.max_timestep, D)
     return padded
 
@@ -43,7 +59,8 @@ def concat_sample_and_ambient(
 def olfaction_encoder(input_BTD: torch.Tensor, w: nn.Module, config: OlfactionConfig):
     B, T, D = input_BTD.shape
     # TODO: verify that this correctly prevents any padded timesteps from contributing
-    mask = padding_mask(input_BTD).broadcast_to(B, 1, T, T)
+    mask = padding_mask(input_BTD)
+    mask = mask[:, None, None, :].expand(-1,-1,T,-1) # (B, 1, 1, T) -> (B, 1, T, T)
     x = w.in_proj(input_BTD)
     x = x + w.pos_emb
     for block in w.blocks:
@@ -67,7 +84,7 @@ def build_olfaction_model(config: OlfactionConfig, dtype: torch.dtype):
     num_timesteps = 2 * config.max_timestep
     olfaction = nn.ModuleDict(
         {
-            "in_proj": nn.Linear(config.smell_dim, config.enc_dim),
+            "in_proj": nn.Linear(config.smell_dim, config.enc_dim, dtype=dtype),
             "blocks": nn.ModuleList(
                 [
                     nn.ModuleDict(
@@ -116,5 +133,7 @@ def build_olfaction_model(config: OlfactionConfig, dtype: torch.dtype):
     olfaction.pos_emb = nn.Parameter(
         torch.zeros((1, num_timesteps, config.enc_dim), dtype=dtype)
     )
+    olfaction.siglip_temp = nn.Parameter(torch.tensor(np.log(10), dtype=dtype))
+    olfaction.siglip_bias = nn.Parameter(torch.tensor(-10, dtype=dtype))
 
     return olfaction

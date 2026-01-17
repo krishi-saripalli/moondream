@@ -5,7 +5,9 @@ import torch
 import torch.nn as nn
 
 from contextlib import contextmanager
-from typing import Callable, Dict, List
+from typing import Callable, Dict, List, Optional
+
+from tqdm import tqdm
 
 
 @contextmanager
@@ -175,6 +177,59 @@ def load_weights_from_safetensors_sharded(index_file: str, model: nn.Module) -> 
         print("Missing keys:", missing_keys)
     if unexpected_keys:
         print("Unexpected keys:", unexpected_keys)
+
+
+def load_vision_weights_from_safetensors_sharded(
+    index_file: str, vision: nn.Module
+) -> None:
+    """
+    Load only `model.vision.*` weights from a sharded HF safetensors checkpoint
+    using `model.safetensors.index.json`.
+
+    Args:
+        index_file: Path to `model.safetensors.index.json`
+        vision: Vision module returned by `build_vision_model(...)`
+    """
+    with open(index_file, "r") as f:
+        index = json.load(f)
+
+    base_dir = os.path.dirname(index_file)
+    weight_map = index["weight_map"]
+
+    def to_local_key(ckpt_key: str) -> Optional[str]:
+        if ckpt_key.startswith("model.vision."):
+            return ckpt_key.replace("model.vision.", "", 1)
+        if ckpt_key.startswith("vision."):
+            return ckpt_key.replace("vision.", "", 1)
+        return None
+
+    # Group vision keys by shard file
+    shard_to_keys: Dict[str, List[str]] = {}
+    for ckpt_key, shard in weight_map.items():
+        if to_local_key(ckpt_key) is not None:
+            shard_to_keys.setdefault(shard, []).append(ckpt_key)
+
+    tensors: Dict[str, torch.Tensor] = {}
+    target_dtype = vision.pos_emb.dtype if hasattr(vision, "pos_emb") else torch.bfloat16
+
+    for shard, keys in tqdm(shard_to_keys.items(), desc="Loading Moondream Vision Weights"):
+        shard_path = os.path.join(base_dir, shard)
+        with safetensors_open(shard_path) as get_tensor:
+            for ckpt_key in keys:
+                local_key = to_local_key(ckpt_key)
+                if local_key is None:
+                    continue
+                tensors[local_key] = get_tensor(ckpt_key).to(dtype=target_dtype)
+
+    missing_keys, unexpected_keys = vision.load_state_dict(tensors, strict=False)
+    if missing_keys:
+        print("Missing vision keys:", missing_keys)
+    if unexpected_keys:
+        print("Unexpected vision keys:", unexpected_keys)
+
+    # Make all parameters contiguous
+    for param in vision.parameters():
+        param.data = param.data.contiguous()
 
 
 def load_weights_from_pt(weights_file: str, model: nn.Module) -> None:
